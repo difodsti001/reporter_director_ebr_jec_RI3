@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reporte Institucional 3 - Cierre reflexivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --surface-1:      #fcfcfb;
+      --page-plane:     #f9f9f7;
+      --text-primary:   #0b0b0b;
+      --text-secondary: #52514e;
+      --text-muted:     #898781;
+      --gridline:       #e1e0d9;
+      --baseline:       #c3c2b7;
+      --border:         rgba(11, 11, 11, 0.10);
+
+      --status-good:     #0ca30c;
+      --status-warning:  #fab219;
+      --status-serious:  #ec835a;
+      --status-critical: #d03b3b;
+      --status-good-rgb:     12, 163, 12;
+      --status-warning-rgb:  250, 178, 25;
+      --status-serious-rgb:  236, 131, 90;
+      --status-critical-rgb: 208, 59, 59;
+
+      /* Marca institucional (MINEDU) — cromo de header/footer/CTA, no reemplaza los colores de estado */
+      --brand-red:       #C0392B;
+      --brand-red-dk:    #A93226;
+      --brand-red-light: rgba(192, 57, 43, 0.08);
+
+      --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:where(:not([data-theme="light"])) {
+        color-scheme: dark;
+        --surface-1:      #1a1a19;
+        --page-plane:     #0d0d0d;
+        --text-primary:   #ffffff;
+        --text-secondary: #c3c2b7;
+        --text-muted:     #898781;
+        --gridline:       #2c2c2a;
+        --baseline:       #383835;
+        --border:         rgba(255, 255, 255, 0.10);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255, 255, 255, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--page-plane);
+      color: var(--text-primary);
+      font-family: var(--font);
+    }
+
+    [hidden] { display: none !important; }
+
+    /* ---------------------------------------------------------------------
+     * Header institucional
+     * ------------------------------------------------------------------- */
+    .app-header {
+      height: 56px;
+      background: linear-gradient(135deg, #8B1A14 0%, var(--brand-red) 60%, var(--brand-red-dk) 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 14px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+    }
+    .header-logo {
+      width: 34px;
+      height: 34px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 4px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
+    .header-title { flex: 1; min-width: 0; }
+    .header-title h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.2;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .header-title p {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 1px 0 0;
+    }
+    .header-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      flex-shrink: 0;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: blink 2.4s ease-in-out infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .btn-header-ghost {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 0.9rem;
+    }
+    .btn-header-ghost:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* ---------------------------------------------------------------------
+     * Barra de contexto (IE actual)
+     * ------------------------------------------------------------------- */
+    .context-bar {
+      background: var(--text-primary);
+      padding: 7px 22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    :root:not([data-theme="dark"]) .context-bar { background: #3C3E43; }
+    .context-tag {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+    .context-name { font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, 0.85); }
+
+    /* ---------------------------------------------------------------------
+     * Contenido
+     * ------------------------------------------------------------------- */
+    .app-shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+
+    .btn-secondary, .btn-primary {
+      font-family: var(--font);
+      font-size: 0.85rem;
+      border-radius: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: var(--surface-1);
+      color: var(--text-primary);
+    }
+    .btn-secondary:hover { background: var(--gridline); }
+    .btn-primary {
+      background: var(--brand-red);
+      border-color: var(--brand-red);
+      color: #ffffff;
+      font-weight: 600;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+    .btn-primary:hover { background: var(--brand-red-dk); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .status-banner {
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 0.88rem;
+      border: 1px solid var(--status-critical);
+      color: var(--status-critical);
+      background: rgba(var(--status-critical-rgb), 0.10);
+    }
+
+    /* Alcances de la lectura (hipótesis / limitaciones): destacados al inicio */
+    .cobertura-warning-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      border: 1px solid var(--status-warning);
+      background: rgba(var(--status-warning-rgb), 0.12);
+    }
+    .cobertura-warning-icon { font-size: 1.1rem; flex-shrink: 0; line-height: 1.4; }
+    .cobertura-warning-banner p, .cobertura-warning-banner li {
+      margin: 0 0 6px;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: var(--text-primary);
+    }
+    .cobertura-warning-banner ul { margin: 6px 0 0; padding-left: 18px; }
+    .cobertura-warning-label { color: var(--status-warning); }
+
+    .loading {
+      color: var(--text-secondary);
+      padding: 24px 0;
+      text-align: center;
+    }
+    .loading::before {
+      content: "⏳";
+      display: block;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .report-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: 14px;
+    }
+    .btn-descargar-pdf { display: inline-flex; align-items: center; gap: 6px; }
+
+    /* Encabezado agregado solo en la captura del PDF */
+    .pdf-header {
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 3px solid var(--brand-red);
+    }
+    .pdf-header h1 {
+      margin: 0 0 6px;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--brand-red);
+    }
+    .pdf-header p { margin: 0; font-size: 0.95rem; color: var(--text-secondary); }
+
+    .state-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+    .state-card.centered { text-align: center; padding: 36px 28px; }
+    .state-icon { font-size: 34px; margin-bottom: 10px; }
+    .state-card h2 { font-size: 1.1rem; margin: 0 0 8px; }
+    .state-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin: 0 0 14px;
+    }
+    .state-card.centered p { max-width: 480px; margin: 0 auto 18px; }
+
+    .card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h3 { font-size: 0.88rem; margin: 18px 0 8px; color: var(--text-secondary); }
+
+    .section-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .section-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--brand-red-light);
+      color: var(--brand-red);
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .section-heading h2 { margin: 0; font-size: 1rem; }
+
+    /* Texto narrativo con acento tipo cita */
+    .texto-reporte {
+      border-left: 3px solid var(--brand-red-light);
+      padding-left: 14px;
+      white-space: pre-line;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: var(--text-primary);
+    }
+    .texto-reporte + .texto-reporte { margin-top: 12px; }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .stat-tile {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .stat-tile .label { font-size: 0.78rem; color: var(--text-secondary); }
+    .stat-tile .value { font-size: 1.00rem; font-weight: 600; margin-top: 4px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .badge.warning { background: rgba(var(--status-warning-rgb), 0.22); color: var(--status-warning); }
+    .badge.good { background: rgba(var(--status-good-rgb), 0.18); color: var(--status-good); }
+    .badge.critical { background: rgba(var(--status-critical-rgb), 0.18); color: var(--status-critical); }
+
+    .purpose-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--brand-red);
+      border-radius: 0 12px 12px 0;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .purpose-banner p {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      flex: 1;
+      min-width: 240px;
+    }
+    .purpose-banner .badge { flex-shrink: 0; }
+
+    .bullet-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .bullet-list li {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--page-plane);
+    }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .data-table th, .data-table td {
+      text-align: left;
+      vertical-align: top;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--gridline);
+    }
+    .data-table th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: var(--page-plane);
+      position: sticky;
+      top: 0;
+    }
+    .data-table tbody tr:nth-child(even) { background: var(--page-plane); }
+    .data-table tbody tr:hover { background: var(--brand-red-light); }
+    .table-scroll { overflow-x: auto; border-radius: 8px; }
+
+    .cierre {
+      background: var(--brand-red-light);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .cierre .texto-reporte { border-left-color: var(--brand-red); }
+
+    .empty-note { color: var(--text-muted); font-size: 0.82rem; }
+    .nota-pie { color: var(--text-muted); font-size: 0.82rem; margin: 10px 0 0; }
+
+    /* ---------------------------------------------------------------------
+     * Footer institucional
+     * ------------------------------------------------------------------- */
+    .app-footer {
+      background: var(--surface-1);
+      border-top: 1px solid var(--border);
+      padding: 10px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .fl { flex: 1; height: 1px; max-width: 40px; }
+    .fl.r { background: var(--brand-red); opacity: 0.5; }
+    .fl.g { background: var(--gridline); }
+    .ft {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 640px;
+    }
+    .ft-shield { color: var(--text-muted); flex-shrink: 0; }
+
+    @media (max-width: 640px) {
+      .app-header { padding: 0 12px; }
+      .header-badge { display: none; }
+    }
+  </style>
+  <!-- Exportación del reporte a PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-logo">
+      <img src="https://guias.servicios.gob.pe/static/archivos/gb3.svg" alt="Escudo Perú" width="26" height="26" />
+    </div>
+    <div class="header-title">
+      <h1>Reporte Institucional 3</h1>
+      <p>Cierre reflexivo de la trayectoria institucional · Directivo</p>
+    </div>
+    <div class="header-badge"><span class="badge-dot"></span>En línea</div>
+    <button id="theme-toggle" class="btn-header-ghost" aria-label="Cambiar tema claro/oscuro" title="Cambiar tema">🌓</button>
+  </header>
+
+  <div class="context-bar" id="context-bar">
+    <span class="context-tag">IE</span>
+    <span class="context-name" id="context-name">Cargando…</span>
+  </div>
+
+  <div class="app-shell">
+    <section class="purpose-banner" aria-label="Propósito del instrumento">
+      <p>
+        Reporte Institucional 3 — <strong>Cierre reflexivo</strong>. Integra el Reporte Institucional 1 (situación
+        inicial), el Reporte Institucional 2 (cambios y dificultades que persisten) y la Matriz de análisis
+        institucional. No es una nueva evaluación ni da lugar a una nueva entrega: ofrece una mirada de conjunto
+        a la trayectoria y no sustituye el análisis colegiado del equipo directivo.
+      </p>
+      <span class="badge good">Sin identificación docente individual</span>
+    </section>
+
+    <!-- Acceso inválido -->
+    <section id="access-error" class="state-card centered" hidden>
+      <div class="state-icon">⚠️</div>
+      <h2>Acceso incorrecto</h2>
+      <p id="access-error-text">
+        Este reporte debe abrirse desde la plataforma Moodle. No se recibieron los datos de
+        usuario necesarios para identificar tu institución educativa.
+      </p>
+    </section>
+
+    <div id="loading" class="loading">Cargando…</div>
+    <div id="status-banner" class="status-banner" role="alert" hidden></div>
+
+    <!-- Estado de los insumos antes de generar el reporte -->
+    <section id="solicitud" class="state-card" hidden>
+      <h2>Solicitar Reporte Institucional 3</h2>
+      <p>
+        Antes de elaborar el reporte, este es el estado de los insumos de su institución.
+        Los reportes se elaboran únicamente cuando el equipo directivo lo solicita.
+      </p>
+      <div id="estado-fuentes"></div>
+      <button id="btn-solicitar" class="btn-primary" style="margin-top:14px">Solicitar Reporte Institucional 3</button>
+    </section>
+
+    <main id="report-content" hidden>
+      <div class="report-actions">
+        <button id="btn-descargar-pdf" class="btn-secondary btn-descargar-pdf">
+          <span aria-hidden="true">⬇</span> Descargar PDF
+        </button>
+      </div>
+      <div id="reporte-container"></div>
+    </main>
+  </div>
+
+  <footer class="app-footer">
+    <div class="fl r"></div><div class="fl g"></div>
+    <span class="ft">
+      <svg viewBox="0 0 14 14" fill="none" width="12" height="12" class="ft-shield"><path d="M7 1.5L2 3.5v4c0 2.5 2.2 4.5 5 5 2.8-.5 5-2.5 5-5v-4L7 1.5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>
+      Este reporte sintetiza información institucional sin identificar a ningún docente. Es insumo de reflexión, no sustituye el análisis colegiado. Este servicio es generado con Inteligencia Artificial (IA).
+    </span>
+    <div class="fl g"></div><div class="fl r"></div>
+  </footer>
+
+  <script>
+"use strict";
+
+/* ---------------------------------------------------------------------
+ * Config: API base URL. La página se sirve desde el mismo origen que la
+ * API, así que por defecto se usan rutas relativas.
+ * Prioridad: ?api= > localStorage > relativo.
+ * ------------------------------------------------------------------- */
+const params = new URLSearchParams(window.location.search);
+
+const API_BASE = (() => {
+  const fromQuery = params.get("api");
+  if (fromQuery) {
+    try { localStorage.setItem("api_base", fromQuery); } catch {}
+    return fromQuery.replace(/\/$/, "");
+  }
+  try { return (localStorage.getItem("api_base") || "").replace(/\/$/, ""); } catch { return ""; }
+})();
+
+/* Los parámetros llegan en la URL desde el redirect de Moodle. */
+const CTX = {
+  userid: params.get("userid"),
+  courseid: params.get("courseid"),
+  cmid: params.get("cmid"),
+};
+
+const $ = (id) => document.getElementById(id);
+const el = {
+  contextBar: $("context-bar"),
+  contextName: $("context-name"),
+  accessError: $("access-error"),
+  accessErrorText: $("access-error-text"),
+  loading: $("loading"),
+  statusBanner: $("status-banner"),
+  solicitud: $("solicitud"),
+  estadoFuentes: $("estado-fuentes"),
+  btnSolicitar: $("btn-solicitar"),
+  reportContent: $("report-content"),
+  reporteContainer: $("reporte-container"),
+  btnDescargarPdf: $("btn-descargar-pdf"),
+  themeToggle: $("theme-toggle"),
+};
+
+/* Tema claro/oscuro, persistido */
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem("theme"); } catch {}
+  if (saved === "light" || saved === "dark") document.documentElement.setAttribute("data-theme", saved);
+  el.themeToggle.addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch {}
+  });
+})();
+
+/* ---------------------------------------------------------------------
+ * Utilidades de DOM. Todo el texto del reporte entra por textContent:
+ * nunca se interpreta como HTML.
+ * ------------------------------------------------------------------- */
+function h(tag, props = {}, ...hijos) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else e.setAttribute(k, v);
+  }
+  for (const c of hijos.flat()) if (c != null) e.append(c);
+  return e;
+}
+const texto = (t) => (t ? h("div", { class: "texto-reporte", text: t }) : null);
+const notaPie = (t) => (t ? h("p", { class: "nota-pie", text: t }) : null);
+
+function fechaLarga(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Lima" });
+}
+
+function sectionCard(numero, titulo) {
+  const section = h("section", { class: "card" });
+  if (numero != null) {
+    section.append(h("div", { class: "section-heading" },
+      h("span", { class: "section-number", text: String(numero) }),
+      h("h2", { text: titulo })));
+  } else {
+    section.append(h("h2", { text: titulo }));
+  }
+  return section;
+}
+
+function tabla(cabeceras, filas) {
+  return h("div", { class: "table-scroll" }, h("table", { class: "data-table" },
+    h("thead", {}, h("tr", {}, cabeceras.map((c) => h("th", { text: c })))),
+    h("tbody", {}, filas.map((f) => h("tr", {}, f.map((c) => (c instanceof Node ? h("td", {}, c) : h("td", { text: c || "" }))))))));
+}
+
+function badge(tono, t) { return h("span", { class: `badge ${tono}`, text: t }); }
+function tonoEstado(t) {
+  const s = (t || "").toLowerCase();
+  if (s.includes("suficiente") || s === "disponible") return "good";
+  if (s.includes("no disponible") || s.includes("no cuenta") || s.includes("confidencial")) return "critical";
+  return "warning";
+}
+
+function statTile(label, value) {
+  return h("div", { class: "stat-tile" },
+    h("div", { class: "label", text: label }),
+    h("div", { class: "value", text: value || "—" }));
+}
+
+/* ---------------------------------------------------------------------
+ * API
+ * ------------------------------------------------------------------- */
+async function api(url, opts) {
+  const res = await fetch(API_BASE + url, opts);
+  let body = null;
+  try { body = await res.json(); } catch {}
+  if (!res.ok) {
+    const err = new Error((body && body.detail) || `Error HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return body;
+}
+
+function setLoading(v, msg) {
+  el.loading.hidden = !v;
+  if (msg) el.loading.textContent = msg;
+  if (v) el.statusBanner.hidden = true;
+}
+function showError(msg) { el.statusBanner.textContent = msg; el.statusBanner.hidden = false; }
+
+/* ---------------------------------------------------------------------
+ * Render del reporte (seis secciones; el frontend no recalcula nada)
+ * ------------------------------------------------------------------- */
+let lastRendered = null;
+
+function renderEncabezado(r) {
+  const section = sectionCard(null, "Datos de la institución");
+  section.append(h("div", { class: "stat-row" },
+    statTile("Institución educativa", r.nombre_ie),
+    statTile("Periodo", r.periodo),
+    statTile("Fecha de generación", fechaLarga(r.fecha_generacion)),
+    statTile("Fuentes integradas", r.fuentes_integradas || "RI1 + RI2")));
+  return section;
+}
+
+function renderAlcances(r) {
+  const limites = r.limitaciones || [];
+  if (!r.advertencia_hipotesis && !limites.length) return null;
+  const cuerpo = h("div", {}, h("p", {}, h("strong", { class: "cobertura-warning-label", text: "Alcances de esta lectura" })));
+  if (r.advertencia_hipotesis) {
+    cuerpo.append(h("p", { text: "Al menos una de las fuentes se elaboró con una cobertura menor a la requerida para representar al conjunto de docentes. Lo que deriva de ella debe tratarse como hipótesis por contrastar con otras fuentes de la institución." }));
+  }
+  if (limites.length) cuerpo.append(h("ul", {}, limites.map((l) => h("li", { text: l }))));
+  return h("div", { class: "cobertura-warning-banner", role: "alert" },
+    h("span", { class: "cobertura-warning-icon", "aria-hidden": "true", text: "⚠️" }), cuerpo);
+}
+
+function render(r) {
+  lastRendered = r;
+  el.contextName.textContent = r.nombre_ie || "—";
+  const nodos = [renderEncabezado(r), renderAlcances(r)];
+
+  if (r.texto_no_habilitado) {
+    const s = sectionCard(null, "Reporte no habilitado");
+    s.append(texto(r.texto_no_habilitado));
+    nodos.push(s);
+  } else {
+    let n = 0;
+    const t = r.trayectoria || {};
+    const s1 = sectionCard(++n, "Una mirada a la trayectoria institucional");
+    s1.append(texto(t.situacion_inicial), texto(t.cambios_observados), texto(t.interpretacion));
+    nodos.push(s1);
+
+    if ((r.fortalezas || []).length) {
+      const s = sectionCard(++n, "Fortalezas evidenciadas durante la trayectoria");
+      s.append(notaPie("Las siguientes fortalezas cuentan con respaldo en la información integrada y resultan significativas para comprender la trayectoria institucional."),
+        tabla(["Fortaleza", "¿Qué permite reconocer?", "Sustento"],
+          r.fortalezas.map((f) => [f.fortaleza, f.explicacion, (f.fuentes || []).join(", ")])));
+      nodos.push(s);
+    }
+    if ((r.aprendizajes || []).length) {
+      const s = sectionCard(++n, "Aprendizajes que deja el proceso institucional");
+      s.append(notaPie("La trayectoria también permite recuperar las comprensiones construidas por la institución durante el proceso."),
+        tabla(["Aprendizaje institucional", "Relación con la trayectoria"],
+        r.aprendizajes.map((a) => [a.aprendizaje, a.relacion])));
+      nodos.push(s);
+    }
+    if ((r.oportunidades || []).length) {
+      const s = sectionCard(++n, "Oportunidades que pueden seguir orientando la mejora");
+      s.append(notaPie("El cierre permite reconocer ámbitos que requieren continuidad, profundización o condiciones adicionales para consolidarse. Estas oportunidades no invalidan los avances alcanzados."),
+        tabla(["Oportunidad", "Lo que muestra la trayectoria", "Sentido para la continuidad"],
+          r.oportunidades.map((o) => [o.oportunidad, o.sustento, o.sentido])));
+      nodos.push(s);
+    }
+    const c = r.continuidad || {};
+    if (c.proyeccion || c.coherencia || c.condiciones) {
+      const s = sectionCard(++n, "La continuidad de la trayectoria institucional");
+      s.append(texto(c.proyeccion), texto(c.coherencia), texto(c.condiciones),
+        notaPie("Esta información constituye un referente para la continuidad de los procesos institucionales, sin convertir el reporte en un nuevo plan de trabajo."));
+      nodos.push(s);
+    }
+    const cierre = sectionCard(++n, "Cierre reflexivo");
+    const msg = (r.cierre || {}).mensaje_integrado;
+    // Marco fijo del Modelo: «La trayectoria … permite reconocer [mensaje]. Los avances … prácticas pedagógicas.»
+    const apertura = msg && r.cierre_apertura ? `${r.cierre_apertura} ${msg}. ${r.cierre_continuidad || ""}`.trim() : msg;
+    cierre.append(h("div", { class: "cierre" }, texto(apertura), texto(r.texto_cierre_fijo)));
+    nodos.push(cierre);
+  }
+
+  const cob = sectionCard(null, "Cobertura de los reportes que se sintetizan");
+  cob.append(tabla(["Fuente", "Fecha del reporte", "Cobertura"],
+    (r.cobertura_fuentes || []).map((f) => [f.fuente, f.fecha ? fechaLarga(f.fecha) : "—", badge(tonoEstado(f.cobertura), f.cobertura)])));
+  nodos.push(cob);
+
+  if (r.nota_lectura) {
+    const nota = sectionCard(null, "Nota de lectura");
+    nota.append(texto(r.nota_lectura));
+    nodos.push(nota);
+  }
+
+  // Precisión por nivel educativo: solo cuando corresponde (Modelo, sección final)
+  if (!r.texto_no_habilitado && (r.particularidades_por_nivel || []).length) {
+    const s = sectionCard(null, "Particularidades relevantes por nivel educativo");
+    s.append(
+      notaPie("La lectura presentada en este reporte tiene carácter institucional. Cuando la institución atiende más de un nivel, se incorporan precisiones sobre Inicial, Primaria o Secundaria únicamente cuando la información integrada muestra una particularidad relevante y cuenta con evidencia suficiente. La ausencia de una precisión por nivel no significa que todos los niveles presenten necesariamente la misma situación."),
+      tabla(["Nivel educativo", "Particularidad evidenciada", "Sentido dentro de la trayectoria institucional"],
+        r.particularidades_por_nivel.map((x) => [x.nivel_educativo, x.hallazgo,
+          [x.sentido, (x.evidencia_trazable || []).length ? `Sustento: ${x.evidencia_trazable.join(", ")}.` : ""].filter(Boolean).join(" ")])),
+      notaPie("Estas precisiones no deben utilizarse para comparar niveles entre sí. Su finalidad es evitar generalizaciones institucionales que la evidencia disponible no permite sostener."));
+    nodos.push(s);
+  }
+
+  el.reporteContainer.replaceChildren(...nodos.filter(Boolean));
+  el.solicitud.hidden = true;
+  el.reportContent.hidden = false;
+}
+
+/* ---------------------------------------------------------------------
+ * Estado de los insumos (antes de generar)
+ * ------------------------------------------------------------------- */
+function mostrarSolicitud(d) {
+  el.contextName.textContent = d.nombre_ie || "—";
+  const faltan = d.faltantes && d.faltantes.length;
+  el.estadoFuentes.replaceChildren(
+    tabla(["Insumo", "Estado", "Qué puede hacer"],
+      (d.insumos || []).map((i) => [i.fuente, badge(tonoEstado(i.estado), i.estado), i.accion || "—"])),
+    h("p", { class: faltan ? "cobertura-warning-label" : "nota-pie", style: "margin-top:12px", text: d.mensaje || "" }));
+  el.btnSolicitar.hidden = !d.puede_generar;
+  el.btnSolicitar.textContent = faltan
+    ? "Generar el reporte con la información disponible"
+    : "Solicitar Reporte Institucional 3";
+  el.solicitud.hidden = false;
+}
+
+async function solicitar() {
+  el.btnSolicitar.disabled = true;
+  el.solicitud.hidden = true;   // mientras se elabora solo se ve el indicador de carga
+  setLoading(true, "Elaborando el reporte institucional, esto puede tardar unos segundos…");
+  try {
+    const r = await api(
+      `/reporte_ri3/generar?courseid=${encodeURIComponent(CTX.courseid || 0)}&cmid=${encodeURIComponent(CTX.cmid || 0)}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userid: Number(CTX.userid) }) });
+    setLoading(false);
+    render(r);
+  } catch (e) {
+    setLoading(false);
+    showError(e.message);
+    el.solicitud.hidden = false;  // vuelve la pantalla de insumos para reintentar
+    el.btnSolicitar.disabled = false;
+    el.btnSolicitar.textContent = "Intentar nuevamente";
+  }
+}
+el.btnSolicitar.addEventListener("click", solicitar);
+
+/* ---------------------------------------------------------------------
+ * Arranque
+ * ------------------------------------------------------------------- */
+(async function init() {
+  if (!CTX.userid) {
+    el.contextBar.hidden = true;
+    setLoading(false);
+    el.accessError.hidden = false;
+    return;
+  }
+  try {
+    const d = await api(`/reporte_ri3/consultar?userid=${encodeURIComponent(CTX.userid)}`);
+    setLoading(false);
+    if (d.accion === "mostrar") render(d.reporte); else mostrarSolicitud(d);
+  } catch (e) {
+    setLoading(false);
+    if (e.status === 404 || e.status === 403) {
+      el.contextBar.hidden = true;
+      el.accessErrorText.textContent = e.status === 404
+        ? "Tu usuario no está asociado a ninguna institución educativa registrada."
+        : "Este reporte está disponible únicamente para el directivo de la institución.";
+      el.accessError.hidden = false;
+      return;
+    }
+    showError(e.message);
+  }
+})();
+
+/* ---------------------------------------------------------------------
+ * Descarga del reporte a PDF (html2pdf.js vía CDN)
+ * ------------------------------------------------------------------- */
+el.btnDescargarPdf.addEventListener("click", () => descargarPdf());
+
+function descargarPdf() {
+  if (typeof html2pdf === "undefined") {
+    console.error("html2pdf.js no cargó todavía; reintenta en un momento.");
+    return;
+  }
+  const btn = el.btnDescargarPdf;
+  const nombreIe = (lastRendered && lastRendered.nombre_ie) || "IE";
+  const archivo = `reporte_institucional_3_${nombreIe.replace(/[^\w]+/g, "_")}.pdf`;
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Generando PDF…";
+
+  const acciones = document.querySelector(".report-actions");
+  acciones.style.display = "none";
+
+  const contenido = el.reporteContainer;
+  const parent = contenido.parentNode;
+  const siguiente = contenido.nextSibling;
+  const colchon = h("div", { style: "padding:4px" });
+  parent.insertBefore(colchon, contenido);
+  colchon.append(
+    h("div", { class: "pdf-header" },
+      h("h1", { text: "Reporte Institucional 3 — Cierre reflexivo" }),
+      h("p", { text: nombreIe })),
+    contenido);
+
+  html2pdf()
+    .set({
+      margin: 10,
+      filename: archivo,
+      image: { type: "jpeg", quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    })
+    .from(colchon)
+    .save()
+    .catch((err) => {
+      console.error("Fallo al generar el PDF:", err);
+      alert("No se pudo generar el PDF. Intenta nuevamente en unos segundos.");
+    })
+    .finally(() => {
+      parent.insertBefore(contenido, siguiente);
+      colchon.remove();
+      acciones.style.display = "";
+      btn.disabled = false;
+      btn.textContent = original;
+    });
+}
+  </script>
+</body>
+</html>
