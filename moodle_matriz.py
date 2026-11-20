@@ -489,30 +489,15 @@ async def _texto_de(entrega: dict) -> str:
     return texto
 
 
-def _precalentar(entrega: dict) -> None:
-    """Inicia en segundo plano la extracción, sin esperar su resultado."""
-    clave = entrega["id"]
-    if clave in _TEXTOS or clave in _EN_CURSO:
-        return
-
-    async def _correr():
-        try:
-            await _texto_de(entrega)
-        except Exception as exc:                     # noqa: BLE001 - se reintenta al generar
-            log.warning("matriz_precalentado_fallido", error=type(exc).__name__)
-    asyncio.ensure_future(_correr())
-
-
 async def obtener_matriz_directivo(userid: int, *, programa: str = "EBR", descargar: bool = True) -> dict:
     """{"id", "texto"} de la Matriz del directivo. Con descargar=False solo
-    se localiza (consulta rápida): `texto` queda en None y se precalienta la
-    extracción para que al generar el reporte ya esté lista."""
+    se localiza (consulta rápida): `texto` queda en None y no se descarga ni
+    se lee nada hasta que se pida generar el reporte."""
     entrega = await localizar_entrega(userid, programa=programa)
     if descargar:
         texto = await _texto_de(entrega)
     else:
         texto = None
-        _precalentar(entrega)
     log.info("matriz_obtenida", userid=userid, programa=programa, archivo=entrega["filename"], descargada=descargar,
              caracteres=len(texto) if texto else 0)
     return {"id": entrega["id"], "texto": texto}
