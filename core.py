@@ -62,10 +62,6 @@ log = structlog.get_logger(__name__)
 # Excepciones de negocio
 # =============================================================================
 
-# =============================================================================
-# Excepciones de negocio
-# =============================================================================
-
 class DirectivoNoEncontradoError(Exception):
     """El userid no resuelve a ninguna IE en base_ebr_IA."""
 
