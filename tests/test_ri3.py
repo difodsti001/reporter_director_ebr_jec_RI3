@@ -48,7 +48,7 @@ def test_estado_completo_requiere_tres_fuentes_suficientes():
 
 
 def test_matriz_fuera_de_alcance_no_es_vacio_ni_degrada(monkeypatch):
-    monkeypatch.delenv("USAR_MATRIZ", raising=False)
+    monkeypatch.setenv("USAR_MATRIZ", "false")
     est, lim = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_USAR, False)
     assert est == ri3.EST_COMPLETO and lim == []
 
@@ -189,8 +189,8 @@ def _simular_llm(monkeypatch, respuestas):
     return llamadas
 
 
-def test_generacion_solo_ri1_ri2_por_defecto(monkeypatch):
-    monkeypatch.delenv("USAR_MATRIZ", raising=False)
+def test_generacion_solo_ri1_ri2_con_matriz_desactivada(monkeypatch):
+    monkeypatch.setenv("USAR_MATRIZ", "false")
     llamadas = _simular_llm(monkeypatch, [_salida_valida()])
     r = asyncio.run(ri3.generar_reporte_ri3(IE, _fuentes()))
     assert r["estado_procesamiento"] == ri3.EST_COMPLETO
@@ -327,7 +327,7 @@ def test_consulta_solo_localiza_y_generar_descarga(monkeypatch):
 
 
 def test_matriz_fuera_de_alcance_no_consulta_moodle(monkeypatch):
-    monkeypatch.delenv("USAR_MATRIZ", raising=False)
+    monkeypatch.setenv("USAR_MATRIZ", "false")
     _sin_db(monkeypatch)
 
     async def no_debe_llamarse(*a, **k):
@@ -359,7 +359,7 @@ def test_perfiles_por_programa():
 
 
 def test_reporte_jec_lleva_tipo_y_periodo(monkeypatch):
-    monkeypatch.delenv("USAR_MATRIZ", raising=False)
+    monkeypatch.setenv("USAR_MATRIZ", "false")
     _simular_llm(monkeypatch, [_salida_valida()])
     r = asyncio.run(ri3.generar_reporte_ri3(IE_JEC, _fuentes()))
     assert (r["tipo_reporte"], r["periodo"], r["programa"]) == ("RI3_JEC", "JEC 2026", "JEC")
@@ -436,7 +436,7 @@ def test_no_existe_generacion_de_fuentes():
 
 
 def test_fuentes_faltantes_no_se_generan_en_ninguno_de_los_programas(monkeypatch):
-    monkeypatch.delenv("USAR_MATRIZ", raising=False)
+    monkeypatch.setenv("USAR_MATRIZ", "false")
     pedidos = []
 
     async def ultima(clave, tipo):
@@ -480,7 +480,7 @@ def test_reporte_json_como_texto_se_acepta_y_el_vacio_se_descarta():
 
 
 def test_sin_fuentes_el_reporte_no_se_genera_ni_se_guarda(monkeypatch):
-    monkeypatch.delenv("USAR_MATRIZ", raising=False)
+    monkeypatch.setenv("USAR_MATRIZ", "false")
 
     async def resolver(userid):
         return IE
@@ -734,3 +734,8 @@ def test_el_reporte_registra_el_directivo():
     r = ri3.armar_reporte({**IE, "userid": 294883}, ri3.EST_COMPLETO, [], [], {"ri1": "usar", "ri2": "usar"}, True,
                           ri3.narrativa_fallback([]), {}, {})
     assert r["userid_directivo"] == 294883 and "294883" in r["reporte_id"]
+
+
+def test_matriz_en_alcance_por_defecto(monkeypatch):
+    monkeypatch.delenv("USAR_MATRIZ", raising=False)
+    assert ri3.matriz_en_alcance() is True

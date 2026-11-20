@@ -6,7 +6,7 @@ de análisis institucional ya producidos.
 ## Archivos
 `ri3.py` (lógica), `moodle_matriz.py` (lee la Matriz de Moodle), `templates/index_ri3.html`,
 `tests/test_ri3.py`, `tests/test_moodle_matriz.py`. `app.py` agrega `/reporte_director_ri3`,
-`/reporte_ri3/consultar` y `/reporte_ri3/generar`. `core.py` y el RI2 no se tocaron.
+`/reporte_ri3/consultar` y `/reporte_ri3/generar`. `core.py` solo conserva lo que usa el RI3 (logging, pools, resolución de la IE); el código del RI2 se retiró porque tiene su propio servicio.
 
 ## Cómo funciona
 1. **Consulta** (`/reporte_ri3/consultar`, solo lectura, sin LLM): si hay un RI3 vigente lo muestra;
@@ -26,7 +26,7 @@ no habilitado).
 ## Matriz (Moodle)
 Actividades (`moodle_matriz.MATRICES`): EBR curso 2919 / cmid 213169; JEC curso 2998 / cmid 213268.
 PDF (o DOCX como alternativa). Para activarla, en `.env`: `MOODLE_BASE_URL`, `MOODLE_SERVICE_PATH`,
-`MOODLE_TOKEN` y `USAR_MATRIZ=true`. Con `USAR_MATRIZ=false` (por defecto) queda fuera: el RI3 integra
+`MOODLE_TOKEN` y `USAR_MATRIZ=true`. Con `USAR_MATRIZ=false` queda fuera (por defecto es `true`): el RI3 integra
 RI1 + RI2 y omite aprendizajes y continuidad.
 - Sin Matriz utilizable (no la subió, ilegible, > 20 MB): se informa en la pantalla previa y el RI3 lo declara.
 - Error técnico de Moodle: no se genera ni se guarda nada (HTTP 503).

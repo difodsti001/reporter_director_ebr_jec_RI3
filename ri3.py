@@ -13,13 +13,11 @@ Organización:
 - Parte con E/S (al final): lectura de fuentes, generación, caché y puntos
   de entrada. Reutiliza los pools, el LLM y la resolución de IE de core.py.
 
-DECISIONES PROVISIONALES (pendientes de coordinación; ver README_RI3.md):
-1. Matriz: no se puede obtener su contenido por configuración (cmids 213169
-   y 213268 sin registros en la base), así que queda FUERA DE ALCANCE
-   (USAR_MATRIZ=false por defecto): el RI3 integra RI1 + RI2, no la
-   menciona como vacío ni degrada el estado por ella, y omite lo que solo
-   ella aporta (aprendizajes, continuidad). Con USAR_MATRIZ=true vuelve a
-   ser una fuente; entonces, si falta, es una limitación declarada
+DECISIONES DE DISEÑO (README_RI3.md; la 2 sigue pendiente de coordinación):
+1. Matriz: es una fuente más (USAR_MATRIZ=true por defecto). Se lee de Moodle
+   (moodle_matriz.MATRICES), se guarda su texto y, si falta, es una limitación
+   declarada. Con USAR_MATRIZ=false queda fuera de alcance: el RI3 integra RI1
+   + RI2, no la menciona como vacío y omite lo que solo ella aporta.
 2. Ficha vs. Adenda: los tres estados de procesamiento de la Ficha se
    conservan; la cobertura heredada (Adenda RI3-03/04) se agrega como campo
    aparte y solo degrada 'completo' a 'con_limitaciones'.
@@ -27,8 +25,8 @@ DECISIONES PROVISIONALES (pendientes de coordinación; ver README_RI3.md):
    viven en la misma base. Si no existen (o la Matriz no está), el RI3 lo
    informa en una pantalla previa y deja elegir: completar los insumos o
    generar el RI3 con lo disponible (la lectura será más limitada y lo dice).
-4. Sin manejo de versiones: una fila por IE y tipo; el RI3 se regenera solo si
-   cambian sus fuentes (RI1, RI2 o la Matriz entregada).
+4. Sin manejo de versiones: una fila por IE y tipo (y por directivo); el RI3
+   se regenera solo si cambian sus fuentes (RI1, RI2 o la Matriz entregada).
 """
 
 from __future__ import annotations
@@ -103,11 +101,10 @@ MAX_CHARS_INSUMO = 12000
 
 
 def matriz_en_alcance() -> bool:
-    """La Matriz de análisis institucional solo forma parte del reporte si
-    está habilitada por configuración (USAR_MATRIZ=true). Por defecto queda
-    fuera del alcance: el RI3 se construye con RI1 y RI2 y no la menciona
-    como un vacío."""
-    return os.environ.get("USAR_MATRIZ", "false").strip().lower() == "true"
+    """La Matriz de análisis institucional es una fuente del RI3, salvo que
+    se desactive por configuración (USAR_MATRIZ=false): entonces el RI3 se
+    construye con RI1 y RI2 y no la menciona como un vacío."""
+    return os.environ.get("USAR_MATRIZ", "true").strip().lower() == "true"
 
 
 # =============================================================================
