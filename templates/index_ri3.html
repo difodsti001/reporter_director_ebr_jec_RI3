@@ -777,10 +777,12 @@ function mostrarSolicitud(d) {
   el.estadoFuentes.replaceChildren(
     tabla(["Insumo", "Estado", "Qué puede hacer"],
       (d.insumos || []).map((i) => [i.fuente, badge(tonoEstado(i.estado), i.estado), i.accion || "—"])),
-    h("p", { class: faltan ? "cobertura-warning-label" : "nota-pie", style: "margin-top:12px", text: d.mensaje || "" }));
+    h("p", { class: faltan ? "cobertura-warning-label" : "nota-pie", style: "margin-top:12px", text: d.mensaje || "" }),
+    ...(d.version_guardada && !faltan ? [h("p", { class: "nota-pie", style: "margin-top:8px",
+      text: "Se actualizó información que alimenta su reporte. Puede generar un nuevo reporte con la información actualizada; el reporte anterior se conservará." })] : []));
   el.btnSolicitar.hidden = !d.puede_generar;
-  el.btnSolicitar.textContent = faltan
-    ? "Generar el reporte con la información disponible"
+  el.btnSolicitar.textContent = d.version_guardada
+    ? "Generar nuevo reporte"
     : "Solicitar Reporte Institucional 3";
   el.solicitud.hidden = false;
 }

@@ -53,24 +53,24 @@ def test_matriz_fuera_de_alcance_no_es_vacio_ni_degrada(monkeypatch):
     assert est == ri3.EST_COMPLETO and lim == []
 
 
-def test_sin_matriz_en_alcance_es_con_limitaciones_y_lo_declara(monkeypatch):
+def test_sin_matriz_en_alcance_no_esta_habilitado_y_lo_declara(monkeypatch):
     monkeypatch.setenv("USAR_MATRIZ", "true")
     est, lim = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_USAR, False)
-    assert est == ri3.EST_LIMITACIONES
+    assert est == ri3.EST_NO_HABILITADO
     assert any("Matriz" in x for x in lim)
 
 
 
 
-def test_cp26_ri2_bajo_umbral_declara_limitacion_y_hipotesis():
+def test_cp26_ri2_bajo_umbral_declara_hipotesis_sin_cambiar_el_estado():
     est, lim = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_HIPOTESIS, True)
-    assert est == ri3.EST_LIMITACIONES
+    assert est == ri3.EST_COMPLETO          # la cobertura no degrada el estado (Ficha); se declara aparte (Adenda)
     assert any("hipótesis" in x for x in lim)
 
 
 def test_ri3_04_confidencial_se_excluye_y_se_declara():
     est, lim = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_EXCLUIR, True)
-    assert est == ri3.EST_LIMITACIONES
+    assert est == ri3.EST_COMPLETO
     assert any("no incorpora sus resultados" in x for x in lim)
     assert ri3.extraer_insumos("ri2", {"sintesis_institucional": "x"}, ri3.TRAT_EXCLUIR) is None
 
@@ -201,13 +201,13 @@ def test_generacion_solo_ri1_ri2_con_matriz_desactivada(monkeypatch):
     assert "Matriz" not in llamadas[0] and "únicamente el RI1 y el RI2" in llamadas[0]
 
 
-def test_generacion_con_limitaciones_matriz_en_alcance_sin_contenido(monkeypatch):
+def test_sin_matriz_en_alcance_no_se_elabora_ninguna_sintesis(monkeypatch):
     monkeypatch.setenv("USAR_MATRIZ", "true")
-    _simular_llm(monkeypatch, [_salida_valida()])
+    llamadas = _simular_llm(monkeypatch, [_salida_valida()])
     r = asyncio.run(ri3.generar_reporte_ri3(IE, _fuentes()))
-    assert r["estado_procesamiento"] == ri3.EST_LIMITACIONES
+    assert r["estado_procesamiento"] == ri3.EST_NO_HABILITADO
+    assert llamadas == [] and "texto_no_habilitado" in r and "fortalezas" not in r
     assert r["identificacion_individual_incluida"] is False
-    assert r["aprendizajes"] == []                    # sin Matriz no se inventan
     assert r["matriz_disponible"] is False
     assert r["fuentes_utilizadas"] == {"ri1_id": 1, "ri2_id": 2, "matriz_id": None}
     assert [f["fuente"] for f in r["cobertura_fuentes"]] == ["Reporte Institucional 1", "Reporte Institucional 2"]
@@ -252,7 +252,7 @@ def test_cp27_ri1_nunca_solicitado_se_declara(monkeypatch):
     monkeypatch.setenv("USAR_MATRIZ", "true")
     _simular_llm(monkeypatch, [_salida_valida()])
     r = asyncio.run(ri3.generar_reporte_ri3(IE, {"ri1": None, "ri2": _fila(2, "COB_SUFICIENTE"), "matriz": {"id": "m", "texto": "t"}}))
-    assert r["estado_procesamiento"] == ri3.EST_LIMITACIONES
+    assert r["estado_procesamiento"] == ri3.EST_NO_HABILITADO
     assert any("Reporte Institucional 1" in x for x in r["limitaciones"])
 
 
@@ -296,7 +296,7 @@ def test_matriz_ausente_se_declara_y_no_es_error(monkeypatch):
     f = asyncio.run(ri3._cargar_fuentes(IE, 5, descargar=True))
     assert f["matriz"] is None
     est, lim = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_USAR, False)
-    assert est == ri3.EST_LIMITACIONES and any("Matriz" in x for x in lim)
+    assert est == ri3.EST_NO_HABILITADO and any("Matriz" in x for x in lim)
 
 
 def test_error_tecnico_de_moodle_no_genera_reporte_degradado(monkeypatch):
@@ -394,22 +394,22 @@ def test_todos_los_insumos_disponibles():
                                                   "Matriz de análisis institucional"]
 
 
-def test_falta_un_insumo_se_puede_completar_o_generar_parcial():
+def test_falta_un_insumo_no_se_puede_generar_y_se_indica_el_aula_virtual():
     e = ri3.estado_insumos(_t(ri3.TRAT_USAR, ri3.TRAT_AUSENTE), True, en_alcance=True)
-    assert e["faltantes"] == ["Reporte Institucional 2"] and e["puede_generar"] is True
-    assert "Solicite el Reporte Institucional 2" in e["insumos"][1]["accion"]
-    assert "completar primero" in e["mensaje"] and "generar el reporte ahora" in e["mensaje"]
+    assert e["faltantes"] == ["Reporte Institucional 2"] and e["puede_generar"] is False
+    assert "Solicite el Reporte Institucional 2 desde el aula virtual" in e["insumos"][1]["accion"]
+    assert "obligatorio" in e["mensaje"] and "aula virtual" in e["mensaje"]
 
 
 def test_falta_la_matriz_se_indica_que_la_suba():
     e = ri3.estado_insumos(_t(ri3.TRAT_USAR, ri3.TRAT_USAR), False, en_alcance=True)
-    assert e["faltantes"] == ["Matriz de análisis institucional"] and e["puede_generar"] is True
+    assert e["faltantes"] == ["Matriz de análisis institucional"] and e["puede_generar"] is False
     assert "Suba su Matriz" in e["insumos"][2]["accion"]
 
 
 def test_sin_ri1_ni_ri2_no_se_puede_generar():
     e = ri3.estado_insumos(_t(ri3.TRAT_AUSENTE, ri3.TRAT_EXCLUIR), True, en_alcance=True)
-    assert e["puede_generar"] is False and "Aún no es posible" in e["mensaje"]
+    assert e["puede_generar"] is False and "obligatorio" in e["mensaje"]
     # coherente con el estado de procesamiento
     assert ri3.decidir_estado_procesamiento(ri3.TRAT_AUSENTE, ri3.TRAT_EXCLUIR, True, True)[0] == ri3.EST_NO_HABILITADO
 
@@ -513,7 +513,7 @@ def test_consultar_devuelve_la_pantalla_previa(monkeypatch):
     monkeypatch.setattr(ri3, "_ultima_fila", ultima)
     monkeypatch.setattr(ri3, "_fila_de_ie", lambda ie, tipo, _f=ultima: _f(ie["clave_ie"], tipo))
     d = asyncio.run(ri3.consultar_ri3(5))
-    assert d["accion"] == "generar" and d["puede_generar"] is True
+    assert d["accion"] == "generar" and d["puede_generar"] is False
     assert d["faltantes"] == ["Reporte Institucional 2"] and "mensaje" in d
     assert "version" not in json.dumps(d["cobertura_fuentes"])
 
@@ -705,7 +705,7 @@ def test_dos_directivos_de_la_misma_ie_no_se_pisan(monkeypatch):
 
     async def guardar(clave, reporte, tipo):
         escritas.append(clave)
-        return 1
+        return 1, reporte
 
     async def nada(*a, **k):
         return None
@@ -739,3 +739,131 @@ def test_el_reporte_registra_el_directivo():
 def test_matriz_en_alcance_por_defecto(monkeypatch):
     monkeypatch.delenv("USAR_MATRIZ", raising=False)
     assert ri3.matriz_en_alcance() is True
+
+
+# --- Insumos obligatorios y estado independiente de la cobertura -----------
+
+def test_falta_cualquier_insumo_obligatorio_es_no_habilitado():
+    for t1, t2, m in ((ri3.TRAT_AUSENTE, ri3.TRAT_USAR, True), (ri3.TRAT_USAR, ri3.TRAT_AUSENTE, True),
+                      (ri3.TRAT_USAR, ri3.TRAT_USAR, False)):
+        assert ri3.decidir_estado_procesamiento(t1, t2, m, True)[0] == ri3.EST_NO_HABILITADO
+
+
+def test_cobertura_baja_o_confidencial_en_ambos_no_cambia_el_estado():
+    est, avisos = ri3.decidir_estado_procesamiento(ri3.TRAT_HIPOTESIS, ri3.TRAT_EXCLUIR, True, True)
+    assert est == ri3.EST_COMPLETO and len(avisos) == 2
+
+
+def test_insumo_confidencial_cuenta_como_disponible_pero_se_declara():
+    e = ri3.estado_insumos(_t(ri3.TRAT_USAR, ri3.TRAT_EXCLUIR), True, en_alcance=True)
+    assert e["puede_generar"] is True and e["faltantes"] == []
+    assert "se declarará" in e["insumos"][1]["estado"]
+
+
+# --- Versiones --------------------------------------------------------------
+
+def _rep(**kw):
+    return {"fecha_generacion": "2026-11-20T10:00:00", "x": 1, **kw}
+
+
+def test_primera_version_es_la_1_sin_anterior():
+    v = ri3.encadenar_version(None, _rep())
+    assert v["version"] == 1 and v["version_anterior"] is None and v["versiones_anteriores"] == []
+
+
+def test_nueva_solicitud_crea_version_vinculada_y_conserva_la_anterior():
+    v1 = ri3.encadenar_version(None, _rep(x="uno"))
+    v2 = ri3.encadenar_version(v1, _rep(x="dos"))
+    v3 = ri3.encadenar_version(v2, _rep(x="tres"))
+    assert (v2["version"], v2["version_anterior"]) == (2, 1)
+    assert (v3["version"], v3["version_anterior"]) == (3, 2)
+    assert [a["x"] for a in v3["versiones_anteriores"]] == ["uno", "dos"]
+    assert [a["version"] for a in v3["versiones_anteriores"]] == [1, 2]
+    assert all("versiones_anteriores" not in a for a in v3["versiones_anteriores"])   # sin anidar
+
+
+def test_reporte_guardado_antes_de_las_versiones_pasa_a_ser_la_1():
+    v = ri3.encadenar_version(_rep(x="viejo"), _rep(x="nuevo"))
+    assert v["version"] == 2 and v["versiones_anteriores"][0]["version"] == 1 and v["versiones_anteriores"][0]["x"] == "viejo"
+
+
+def test_un_intento_degradado_no_cuenta_como_version():
+    v1 = ri3.encadenar_version(None, _rep(x="uno"))
+    deg = ri3.encadenar_version(v1, _rep(narrativa_degradada=True))
+    assert deg["version"] == 2
+    reintento = ri3.encadenar_version(deg, _rep(x="bueno"))
+    assert reintento["version"] == 2 and reintento["version_anterior"] == 1
+    assert [a["version"] for a in reintento["versiones_anteriores"]] == [1]
+
+
+def test_para_cliente_quita_las_copias_y_resume_el_historial():
+    v2 = ri3.encadenar_version(ri3.encadenar_version(None, _rep()), _rep())
+    c = ri3.para_cliente(v2)
+    assert "versiones_anteriores" not in c
+    assert [h["version"] for h in c["historial_versiones"]] == [1, 2]
+    assert "versiones_anteriores" in v2          # el guardado no se altera
+
+
+def test_guardar_conserva_la_version_previa_en_la_misma_fila(monkeypatch):
+    """Una sola fila: el SELECT ... FOR UPDATE lee el JSON previo y el UPSERT guarda la nueva versión con la anterior dentro."""
+    guardado = {}
+
+    class Cur:
+        def __init__(self, fila):
+            self.fila = fila
+
+        async def fetchone(self):
+            return self.fila
+
+    class Conn:
+        async def execute(self, q, params=None):
+            if "FOR UPDATE" in q:
+                return Cur({"id": 7, "reporte_json": guardado["json"]} if "json" in guardado else None)
+            guardado["json"] = params["reporte"].obj
+            return Cur({"id": 7})
+
+        async def commit(self):
+            pass
+
+    class Ctx:
+        async def __aenter__(self):
+            return Conn()
+
+        async def __aexit__(self, *a):
+            return False
+
+    class Pool:
+        def connection(self):
+            return Ctx()
+    monkeypatch.setattr(ri3.core, "pool_cache", Pool())
+    id1, r1 = asyncio.run(ri3._guardar_ri3("IE#1", _rep(x="uno"), "RI3"))
+    id2, r2 = asyncio.run(ri3._guardar_ri3("IE#1", _rep(x="dos"), "RI3"))
+    assert id1 == id2 == 7 and r1["version"] == 1 and r2["version"] == 2
+    assert guardado["json"]["versiones_anteriores"][0]["x"] == "uno"
+
+
+# --- Particularidades por nivel ---------------------------------------------
+
+def test_prompt_pide_todos_los_niveles_con_evidencia_sin_comparar():
+    p = ri3.construir_prompt("IE", {"ri1": "a", "ri2": "b", "matriz": "m"}, {"ri1": "usar", "ri2": "usar"}, True)
+    assert "TODOS los niveles" in p and "no muestres solo el nivel que avanzó" in p
+    assert "La Matriz sola es evidencia suficiente" in p and "Nunca compares, jerarquices" in p
+
+
+def test_jec_un_solo_nivel_no_tiene_particularidades_por_nivel(monkeypatch):
+    monkeypatch.setenv("USAR_MATRIZ", "true")
+    data = _salida_valida()
+    data["particularidades_por_nivel"] = [{"nivel_educativo": "Secundaria", "tipo": "cambio", "hallazgo": "h", "sentido": "s",
+                                           "evidencia_trazable": ["RI1"]}]
+    llamadas = _simular_llm(monkeypatch, [data])
+    ie = {**IE, "programa": "JEC"}
+    r = asyncio.run(ri3.generar_reporte_ri3(ie, _fuentes(matriz={"id": "m", "texto": "t"})))
+    assert r["particularidades_por_nivel"] == []
+    assert "único nivel educativo (Secundaria)" in llamadas[0]
+
+
+def test_si_moodle_no_responde_no_se_pide_subir_la_matriz():
+    e = ri3.estado_insumos(_t(ri3.TRAT_USAR, ri3.TRAT_USAR), False, en_alcance=True, matriz_no_verificada=True)
+    assert e["puede_generar"] is False and e["faltantes"] == []
+    assert "No se pudo verificar" in e["insumos"][2]["estado"] and "Suba" not in (e["insumos"][2]["accion"] or "")
+    assert "No fue posible consultar la Matriz" in e["mensaje"]
