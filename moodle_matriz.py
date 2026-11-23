@@ -48,7 +48,7 @@ MATRICES = {
 COURSEID_MATRIZ_EBR, CMID_MATRIZ_EBR = MATRICES["EBR"]
 
 EXTENSIONES = (".pdf", ".docx")      # en orden de preferencia
-MAX_MB = 20
+MAX_MB = 50
 MAX_CHARS_MATRIZ = 60000
 # Cambia cuando cambia cómo se extrae el texto: invalida los textos ya guardados.
 EXTRACCION_VERSION = 2
@@ -84,6 +84,12 @@ class MatrizAusenteError(MatrizNoDisponibleError):
     """Respuesta definitiva: el directivo no tiene una Matriz utilizable
     (no la subió, es ilegible o excede el tamaño). El RI3 se genera y lo
     declara como limitación."""
+
+
+class MatrizIlegibleError(MatrizAusenteError):
+    """El directivo sí subió un archivo, pero está vacío o no se puede leer
+    (sin texto, dañado, no es un PDF/DOCX válido o excede el tamaño). El RI3
+    se genera sin la Matriz y queda «con limitaciones»."""
 
 
 # =============================================================================
@@ -272,6 +278,9 @@ def _quitar_cercas(texto: str) -> str:
     return re.sub(r"\n?```[ \t]*$", "", texto).strip()
 
 
+_MIN_CONTENIDO = 40     # caracteres útiles mínimos para considerar legible la Matriz
+
+
 def _contenido_util(texto: str) -> int:
     return len(re.sub(r"[#\s|\-]|Página \d+|Tabla \d+", "", texto))
 
@@ -280,8 +289,22 @@ async def extraer_texto_async(ruta: Path) -> str:
     """Texto de la Matriz. PDF: transcripción con visión (si está activada y
     no falla) o, en su defecto, texto y tablas de pdfplumber. DOCX: tablas
     estructuradas."""
-    base = await asyncio.to_thread(extraer_texto, ruta)      # valida que haya texto legible
-    if ruta.suffix.lower() != ".pdf" or not vision_activada():
+    es_pdf = ruta.suffix.lower() == ".pdf"
+    try:
+        base = await asyncio.to_thread(extraer_texto, ruta)  # valida que haya texto legible
+    except MatrizIlegibleError:
+        if not (es_pdf and vision_activada()):
+            raise
+        # PDF sin capa de texto (escaneado): la visión todavía puede leerlo.
+        try:
+            vision = await transcribir_con_vision(ruta)
+        except Exception as exc:                              # noqa: BLE001
+            log.warning("matriz_vision_fallida", error=type(exc).__name__)
+            raise MatrizIlegibleError("El archivo de la Matriz no contiene texto legible.") from None
+        if _contenido_util(vision) < _MIN_CONTENIDO:
+            raise MatrizIlegibleError("El archivo de la Matriz no contiene texto legible.") from None
+        return vision
+    if not es_pdf or not vision_activada():
         return base
     try:
         vision = await transcribir_con_vision(ruta)
@@ -322,8 +345,8 @@ def extraer_texto(ruta: Path) -> str:
     (p. ej. un PDF escaneado: no hay OCR) se trata como no disponible."""
     ext = ruta.suffix.lower()
     texto = extraer_pdf(ruta) if ext == ".pdf" else extraer_docx(ruta) if ext == ".docx" else ""
-    if len(re.sub(r"[#\s|\-]|Página \d+|Tabla \d+", "", texto)) < 40:
-        raise MatrizAusenteError("El archivo de la Matriz no contiene texto legible (¿PDF escaneado?).")
+    if _contenido_util(texto) < _MIN_CONTENIDO:
+        raise MatrizIlegibleError("El archivo de la Matriz no contiene texto legible (¿PDF escaneado?).")
     return texto
 
 
@@ -423,10 +446,10 @@ async def descargar_y_extraer(entrega: dict, *, client: Optional[httpx.AsyncClie
             await client.aclose()
 
     if len(r.content) > MAX_MB * 1024 * 1024:
-        raise MatrizAusenteError(f"La Matriz supera el límite de {MAX_MB} MB.")
+        raise MatrizIlegibleError(f"La Matriz supera el límite de {MAX_MB} MB.")
     ext = Path(entrega.get("filename") or "").suffix.lower()
     if ext == ".pdf" and not r.content.startswith(b"%PDF"):
-        raise MatrizAusenteError("El archivo descargado no parece un PDF.")
+        raise MatrizIlegibleError("El archivo descargado no parece un PDF.")
 
     with tempfile.TemporaryDirectory(prefix="matriz_") as carpeta:
         ruta = Path(carpeta) / f"matriz{ext}"
@@ -494,10 +517,19 @@ async def obtener_matriz_directivo(userid: int, *, programa: str = "EBR", descar
     se localiza (consulta rápida): `texto` queda en None y no se descarga ni
     se lee nada hasta que se pida generar el reporte."""
     entrega = await localizar_entrega(userid, programa=programa)
+    ilegible = False
     if descargar:
-        texto = await _texto_de(entrega)
+        try:
+            texto = await _texto_de(entrega)
+        except MatrizIlegibleError as exc:
+            # Subió un archivo, pero vacío o ilegible: no es «sin Matriz», es una limitación.
+            log.info("matriz_ilegible", userid=userid, programa=programa, motivo=str(exc))
+            texto, ilegible = "", True
     else:
         texto = None
     log.info("matriz_obtenida", userid=userid, programa=programa, archivo=entrega["filename"], descargada=descargar,
              caracteres=len(texto) if texto else 0)
-    return {"id": entrega["id"], "texto": texto}
+    resultado = {"id": entrega["id"], "texto": texto}
+    if ilegible:
+        resultado["ilegible"] = True
+    return resultado

@@ -134,7 +134,8 @@ def tratamiento_fuente(reporte: Optional[dict]) -> str:
 
 
 def decidir_estado_procesamiento(trat_ri1: str, trat_ri2: str, hay_matriz: bool,
-                                 en_alcance: Optional[bool] = None) -> tuple[str, list[str]]:
+                                 en_alcance: Optional[bool] = None,
+                                 matriz_ilegible: bool = False) -> tuple[str, list[str]]:
     """Retorna (estado_procesamiento, avisos visibles).
 
     El estado depende ÚNICAMENTE de que estén las fuentes obligatorias (RI1,
@@ -145,14 +146,15 @@ def decidir_estado_procesamiento(trat_ri1: str, trat_ri2: str, hay_matriz: bool,
     excluye, si fue confidencial).
 
     Si la Matriz está fuera de alcance por configuración (en_alcance=False),
-    no es obligatoria. EST_LIMITACIONES queda reservado a vacíos internos
-    relevantes de las fuentes: hoy ninguna regla lo asigna."""
+    no es obligatoria. Si el directivo SÍ subió la Matriz pero está vacía o
+    no se puede leer (matriz_ilegible), el estado es EST_LIMITACIONES: se
+    elabora con RI1 y RI2 y se declara. No se exige que siga la plantilla."""
     en_alcance = matriz_en_alcance() if en_alcance is None else en_alcance
     faltantes: list[str] = []
     for clave, trat in (("ri1", trat_ri1), ("ri2", trat_ri2)):
         if trat == TRAT_AUSENTE:
             faltantes.append(f"No se dispone del {NOMBRES_FUENTE[clave]}.")
-    if en_alcance and not hay_matriz:
+    if en_alcance and not hay_matriz and not matriz_ilegible:
         faltantes.append(f"No se dispone de la {NOMBRE_MATRIZ}.")
     if faltantes:
         return EST_NO_HABILITADO, faltantes
@@ -170,6 +172,12 @@ def decidir_estado_procesamiento(trat_ri1: str, trat_ri2: str, hay_matriz: bool,
                 f"El {nombre} se elaboró con una cobertura menor a la requerida para representar al "
                 "conjunto de docentes; lo que se recoge de él se presenta solo como hipótesis por contrastar."
             )
+    if en_alcance and matriz_ilegible and not hay_matriz:
+        avisos.append(
+            f"La {NOMBRE_MATRIZ} se recibió, pero está vacía o no se pudo leer; por ello este cierre "
+            "se elabora solo con el Reporte Institucional 1 y el Reporte Institucional 2."
+        )
+        return EST_LIMITACIONES, avisos
     return EST_COMPLETO, avisos
 
 
@@ -877,7 +885,9 @@ async def generar_reporte_ri3(ie: dict, fuentes: dict) -> dict:
     j2 = ri2["reporte_json"] if ri2 else None
     trat = {"ri1": tratamiento_fuente(j1), "ri2": tratamiento_fuente(j2)}
     hay_matriz = bool(matriz and matriz.get("texto"))
-    estado_proc, limitaciones = decidir_estado_procesamiento(trat["ri1"], trat["ri2"], hay_matriz)
+    matriz_ilegible = bool(matriz and matriz.get("ilegible"))
+    estado_proc, limitaciones = decidir_estado_procesamiento(
+        trat["ri1"], trat["ri2"], hay_matriz, matriz_ilegible=matriz_ilegible)
 
     resumen = [resumen_fuente("ri1", ri1), resumen_fuente("ri2", ri2)]
     ids = {"ri1": ri1 and ri1["id"], "ri2": ri2 and ri2["id"], "matriz": matriz and matriz.get("id")}

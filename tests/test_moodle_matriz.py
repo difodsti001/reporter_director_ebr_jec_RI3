@@ -298,3 +298,24 @@ def test_la_normalizacion_quita_el_relleno_de_tablas_y_avisa_si_recorta(monkeypa
     assert mm._normalizar(t) == "| a | b |\n|---|---|\n| 1 | 2 |"
     monkeypatch.setattr(mm, "MAX_CHARS_MATRIZ", 10)
     assert len(mm._normalizar("x" * 50)) == 10
+
+
+def test_archivo_vacio_o_sin_texto_es_ilegible_no_ausente(tmp_path):
+    f = tmp_path / "m.docx"
+    import docx
+    docx.Document().save(f)
+    with pytest.raises(mm.MatrizIlegibleError):
+        mm.extraer_texto(f)
+    assert issubclass(mm.MatrizIlegibleError, mm.MatrizAusenteError)
+
+
+def test_obtener_matriz_ilegible_se_marca_sin_fallar(monkeypatch):
+    async def localizar(*a, **k):
+        return {"id": "1:2:3", "filename": "m.pdf", "fileurl": "u", "timemodified": 3}
+
+    async def texto(entrega):
+        raise mm.MatrizIlegibleError("vacío")
+    monkeypatch.setattr(mm, "localizar_entrega", localizar)
+    monkeypatch.setattr(mm, "_texto_de", texto)
+    r = asyncio.run(mm.obtener_matriz_directivo(2))
+    assert r == {"id": "1:2:3", "texto": "", "ilegible": True}

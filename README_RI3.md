@@ -26,8 +26,10 @@ de análisis institucional ya producidos.
 ## Estado y cobertura (Ficha vs. Adenda)
 El **estado** depende solo de que estén las fuentes (completo / no habilitado). La **cobertura** baja o
 confidencial de RI1/RI2 se declara en el texto y lo que derive de ella se redacta como hipótesis (o se
-excluye); no cambia el estado. `con_limitaciones` queda reservado a vacíos internos relevantes: hoy
-ninguna regla lo asigna.
+excluye); no cambia el estado. `con_limitaciones` se asigna con una regla simple: el directivo subió la
+Matriz, pero el archivo está **vacío o no se puede leer** (sin texto, dañado, no es PDF/DOCX válido o excede
+el tamaño). Entonces el reporte se elabora solo con RI1 y RI2 y lo declara. No se exige que la Matriz siga la
+plantilla. Si no subió ningún archivo, sigue siendo `no_habilitado`.
 
 ## Particularidades por nivel
 Se muestran todos los niveles con evidencia suficiente y trazable (favorable o de avance limitado), sin
@@ -39,7 +41,7 @@ Actividades (`moodle_matriz.MATRICES`): EBR curso 2919 / cmid 213169; JEC curso 
 PDF (o DOCX como alternativa). Para activarla, en `.env`: `MOODLE_BASE_URL`, `MOODLE_SERVICE_PATH`,
 `MOODLE_TOKEN` y `USAR_MATRIZ=true`. Con `USAR_MATRIZ=false` queda fuera (por defecto es `true`): el RI3 integra
 RI1 + RI2 y omite aprendizajes y continuidad.
-- Sin Matriz utilizable (no la subió, ilegible, > 20 MB): se informa en la pantalla previa y el RI3 queda no habilitado.
+- Sin Matriz (no subió ningún archivo): se informa en la pantalla previa y el RI3 queda no habilitado. Archivo vacío, ilegible o de más de 50 MB (tope de lectura): se genera con RI1 y RI2 y queda con limitaciones.
 - Error técnico de Moodle: no se genera ni se guarda nada (HTTP 503).
 
 ## Reglas confirmadas por el área pedagógica

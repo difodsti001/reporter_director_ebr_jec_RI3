@@ -867,3 +867,31 @@ def test_si_moodle_no_responde_no_se_pide_subir_la_matriz():
     assert e["puede_generar"] is False and e["faltantes"] == []
     assert "No se pudo verificar" in e["insumos"][2]["estado"] and "Suba" not in (e["insumos"][2]["accion"] or "")
     assert "No fue posible consultar la Matriz" in e["mensaje"]
+
+
+# --- Matriz vacía o ilegible => con limitaciones ----------------------------
+
+def test_matriz_ilegible_es_con_limitaciones_y_lo_declara():
+    est, avis = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_USAR, False, True, matriz_ilegible=True)
+    assert est == ri3.EST_LIMITACIONES
+    assert any("vacía o no se pudo leer" in a for a in avis)
+
+
+def test_matriz_ilegible_no_es_lo_mismo_que_matriz_ausente():
+    est, _ = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_USAR, False, True, matriz_ilegible=False)
+    assert est == ri3.EST_NO_HABILITADO
+
+
+def test_matriz_ilegible_no_salva_la_falta_de_ri1_o_ri2():
+    est, _ = ri3.decidir_estado_procesamiento(ri3.TRAT_AUSENTE, ri3.TRAT_USAR, False, True, matriz_ilegible=True)
+    assert est == ri3.EST_NO_HABILITADO
+
+
+def test_generacion_con_matriz_ilegible_usa_solo_ri1_ri2(monkeypatch):
+    monkeypatch.setenv("USAR_MATRIZ", "true")
+    llamadas = _simular_llm(monkeypatch, [_salida_valida()])
+    r = asyncio.run(ri3.generar_reporte_ri3(IE, _fuentes(matriz={"id": "m", "texto": "", "ilegible": True})))
+    assert r["estado_procesamiento"] == ri3.EST_LIMITACIONES
+    assert r["matriz_disponible"] is False and r["aprendizajes"] == []
+    assert len(llamadas) == 1 and "NO DISPONIBLE" in llamadas[0]
+    assert any("vacía o no se pudo leer" in x for x in r["limitaciones"])
