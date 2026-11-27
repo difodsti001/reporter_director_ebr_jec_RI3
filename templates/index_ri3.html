@@ -745,22 +745,23 @@ function render(r) {
     (r.cobertura_fuentes || []).map((f) => [f.fuente, f.fecha ? fechaLarga(f.fecha) : "—", badge(tonoEstado(f.cobertura), f.cobertura)])));
   nodos.push(cob);
 
-  if (r.nota_lectura) {
-    const nota = sectionCard(null, "Nota de lectura");
-    nota.append(texto(r.nota_lectura));
-    nodos.push(nota);
-  }
-
   // Precisión por nivel educativo: solo cuando corresponde (Modelo, sección final)
   if (!r.texto_no_habilitado && (r.particularidades_por_nivel || []).length) {
     const s = sectionCard(null, "Particularidades relevantes por nivel educativo");
     s.append(
-      notaPie("La lectura presentada en este reporte tiene carácter institucional. Cuando la institución atiende más de un nivel, se incorporan precisiones sobre Inicial, Primaria o Secundaria únicamente cuando la información integrada muestra una particularidad relevante y cuenta con evidencia suficiente. La ausencia de una precisión por nivel no significa que todos los niveles presenten necesariamente la misma situación."),
+      notaPie("La lectura presentada en este reporte tiene carácter institucional. Cuando la institución atiende más de un nivel, se incorporan precisiones sobre Inicial, Primaria o Secundaria en todos los niveles que cuentan con evidencia suficiente y trazable, sean resultados favorables o con dificultades, sin comparar los niveles entre sí. La ausencia de una precisión sobre un nivel indica que no se contó con evidencia suficiente para ese nivel; no significa que presente la misma situación que los demás."),
       tabla(["Nivel educativo", "Particularidad evidenciada", "Sentido dentro de la trayectoria institucional"],
         r.particularidades_por_nivel.map((x) => [x.nivel_educativo, x.hallazgo,
           [x.sentido, (x.evidencia_trazable || []).length ? `Sustento: ${x.evidencia_trazable.join(", ")}.` : ""].filter(Boolean).join(" ")])),
       notaPie("Estas precisiones no deben utilizarse para comparar niveles entre sí. Su finalidad es evitar generalizaciones institucionales que la evidencia disponible no permite sostener."));
     nodos.push(s);
+  }
+
+  // Nota de lectura: siempre al final del reporte
+  if (r.nota_lectura) {
+    const nota = sectionCard(null, "Nota de lectura");
+    nota.append(texto(r.nota_lectura));
+    nodos.push(nota);
   }
 
   el.reporteContainer.replaceChildren(...nodos.filter(Boolean));
