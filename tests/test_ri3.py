@@ -895,3 +895,10 @@ def test_generacion_con_matriz_ilegible_usa_solo_ri1_ri2(monkeypatch):
     assert r["matriz_disponible"] is False and r["aprendizajes"] == []
     assert len(llamadas) == 1 and "NO DISPONIBLE" in llamadas[0]
     assert any("vacía o no se pudo leer" in x for x in r["limitaciones"])
+
+
+def test_aviso_de_matriz_ilegible_explica_lo_que_falta():
+    _, avis = ri3.decidir_estado_procesamiento(ri3.TRAT_USAR, ri3.TRAT_USAR, False, True, matriz_ilegible=True)
+    texto = " ".join(avis)
+    assert "se presenta con limitaciones" in texto and "análisis reflexivo y crítico" in texto
+    assert "aprendizaje institucional" in texto

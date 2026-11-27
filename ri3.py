@@ -174,8 +174,12 @@ def decidir_estado_procesamiento(trat_ri1: str, trat_ri2: str, hay_matriz: bool,
             )
     if en_alcance and matriz_ilegible and not hay_matriz:
         avisos.append(
-            f"La {NOMBRE_MATRIZ} se recibió, pero está vacía o no se pudo leer; por ello este cierre "
-            "se elabora solo con el Reporte Institucional 1 y el Reporte Institucional 2."
+            f"La {NOMBRE_MATRIZ} se recibió, pero está vacía o no se pudo leer. Por ello, este cierre se "
+            "elabora solo con el Reporte Institucional 1 y el Reporte Institucional 2 y se presenta con "
+            "limitaciones: no incorpora el análisis reflexivo y crítico de la institución, evidencia que hace "
+            "visible el aprendizaje institucional construido durante el proceso, es decir, el conocimiento "
+            "sobre la práctica y sobre las condiciones de mejora que se logró fortalecer en la institución "
+            "educativa."
         )
         return EST_LIMITACIONES, avisos
     return EST_COMPLETO, avisos
